@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Waylon's 21st Birthday</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: rgba(44, 132, 232, 0.641);
+      color: white;
+      text-align: center;
+      justify-content: start;
+      align-items: center;
+
+      margin: 0;
+
+    }
+
+
+
+    #laughs {
+      display: none;
+    }
+
+    p {
+      text-align: center;
+      font-size: x-large;
+    }
+
+    /* Button */
+    #submit-btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin-bottom: 30px;
+      cursor: pointer;
+    }
+
+    /* First image hidden initially */
+    .slide-in {
+      opacity: 0;
+      transform: translateX(-100%);
+      transition: transform 1s ease-out, opacity 1s ease-out;
+      max-width: 600px;
+      margin-bottom: 8px;
+    }
+
+    .slide-in.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Text under first image */
+    #demo {
+      opacity: 0;
+      transition: opacity 1s ease;
+      margin-bottom: 30px;
+      color: #333;
+
+      text-align: center;
+    }
+
+    #demo.visible {
+      opacity: 1;
+    }
+
+    /* Second image (starts small & transparent) */
+    .expand-image {
+      opacity: 0;
+      transform: scale(0.5);
+      transition: transform 1s ease, opacity 1s ease;
+      max-width: 80%;
+      margin-bottom: 8px;
+    }
+
+    .expand-image.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Text under second image */
+    #demo1 {
+      opacity: 0;
+      transition: opacity 1s ease;
+      font-size: 18px;
+      color: #333;
+      max-width: 80%;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    #demo1.visible {
+      opacity: 1;
+    }
+
+    .horizontal-scroll-container {
+      display: flex;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .slide {
+      flex: 0 0 100vw;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="horizontal-scroll-container">
+    <section class="slide">
+      <H1>Happy Birthday Waylon!!!</H1>
+      <h2>Blow out your candles on this special day!!!!</h2>
+
+
+      <section id="flame">
+      </section>
+      <canvas id="cakeCanvas" width="600" height="500" text-align="centre"></canvas>
+
+
+    </section>
+
+
+    <section id="laughs" class="slide">
+      <input type="number" id="age" placeholder="How old are you today?">
+      <BR><BR>
+
+      <button id='submit_btn'>Submit!</button>
+      <p id="demo">HAAHHAHAHA OLDIE PANTSSS, You're ${age}?"</p>
+
+      <img class="slide-in" id="img01" src="old_age.png" alt="aging fast">
+
+      <p id="demo1">You look more like this as you're that OLDDDDD!"</p>
+      <br>
+
+      <img class="expand-image" class="image" id="img02" src="monkey.jpeg" alt="old monkey">
+    </section>
+    <section class="slide">
+      <h2>Hmmmm....</h2>
+      <img src="CAKE.png" alt="waylon's face" style="max-width: 80%;">
+    </section>
+  </div>
+
+
+  <script>
+    const canvas = document.getElementById('cakeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let flameIntensity = 1;
+    let isBlowing = false;
+    let flameOut = false;
+    let smokeStartTime = 0;
+
+    const smokeParticles = [];
+    const sparkParticles = [];
+
+    function randRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    class SmokeParticle {
+      constructor(x, y) {
+        this.x = x + randRange(-10, 10);
+        this.y = y + randRange(-5, 5);
+        this.radius = randRange(10, 25);
+        this.opacity = 0.4;
+        this.life = 100;
+        this.vx = randRange(-0.3, 0.3);
+        this.vy = randRange(-1, -2);
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.radius += 0.1;
+        this.life--;
+        this.opacity -= 0.004;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(200, 200, 200, ${this.opacity})`;
+        ctx.shadowColor = `rgba(200, 200, 200, ${this.opacity})`;
+        ctx.shadowBlur = 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    class SparkParticle {
+      constructor(x, y) {
+        this.x = x + randRange(-15, 15);
+        this.y = y + randRange(-10, 10);
+        this.radius = randRange(1, 3);
+        this.life = 50 + Math.random() * 30;
+        this.vx = randRange(-0.5, 0.5);
+        this.vy = randRange(-1.5, -0.5);
+        this.opacity = 1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.opacity -= 0.02;
+        this.life--;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 215, 0, ${this.opacity})`;
+        ctx.shadowColor = `rgba(255, 215, 0, ${this.opacity})`;
+        ctx.shadowBlur = 15;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawLayer(x, y, width, height, color, topColor) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, width, height);
+      ctx.beginPath();
+      ctx.ellipse(x + width / 2, y, width / 2, 20, 0, 0, Math.PI * 2);
+      ctx.fillStyle = topColor;
+      ctx.fill();
+    }
+
+    function drawCandle(x, y) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(x - 10, y - 0, 15, 50);
+    }
+
+    function drawFlame(x, y, intensity) {
+      if (intensity <= 0) return;
+      ctx.save();
+      ctx.translate(x, y);
+
+      const scale = 0.6 + 0.3 * intensity + 0.1 * Math.sin(Date.now() / 100);
+      ctx.scale(scale, scale);
+
+      const gradient = ctx.createRadialGradient(0, -50, 10, 0, -20, 80);
+      gradient.addColorStop(0, `rgba(255, 255, 180, ${intensity})`);
+      gradient.addColorStop(0.5, `rgba(255, 140, 0, ${intensity})`);
+      gradient.addColorStop(1, `rgba(255, 40, 0, 0)`);
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(0, -100);
+      ctx.bezierCurveTo(40, -40, 30, 20, 0, 60);
+      ctx.bezierCurveTo(-30, 20, -40, -40, 0, -100);
+      ctx.closePath();
+
+      ctx.shadowColor = 'orange';
+      ctx.shadowBlur = 30 * intensity;
+
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawCake() {
+      drawLayer(150, 380, 300, 80, "#8B4513", "#D2691E");
+      drawLayer(180, 300, 240, 70, "#A0522D", "#E9967A");
+      drawLayer(210, 230, 180, 60, "#CD853F", "#FFE4E1");
+
+      const candleX = 300;
+      const candleY = 190;
+
+      drawCandle(candleX, candleY);
+      if (!flameOut) {
+        drawFlame(candleX, candleY, flameIntensity);
+      } else {
+        const now = Date.now();
+        if (now - smokeStartTime < 2000) {
+          smokeParticles.push(new SmokeParticle(candleX, candleY));
+          sparkParticles.push(new SparkParticle(candleX, candleY));
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawCake();
+
+      for (let i = smokeParticles.length - 1; i >= 0; i--) {
+        const p = smokeParticles[i];
+        p.update();
+        if (p.life <= 0 || p.opacity <= 0) smokeParticles.splice(i, 1);
+        else p.draw();
+      }
+
+      for (let i = sparkParticles.length - 1; i >= 0; i--) {
+        const p = sparkParticles[i];
+        p.update();
+        if (p.life <= 0 || p.opacity <= 0) sparkParticles.splice(i, 1);
+        else p.draw();
+      }
+
+      if (!isBlowing && flameIntensity < 1 && !flameOut) {
+        flameIntensity += 0.01;
+        if (flameIntensity > 1) flameIntensity = 1;
+      }
+
+      if (!flameOut && flameIntensity <= 0) {
+        flameOut = true;
+        smokeStartTime = Date.now();
+
+        document.getElementById("laughs").style.display = 'block';
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Microphone detection
+    let audioCtx, analyser, dataArray, source;
+    async function setupMic() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        detectBlowing();
+      } catch (e) {
+        alert('Microphone access is needed to blow out the candle.');
+        console.error(e);
+      }
+    }
+
+    function detectBlowing() {
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const avg = sum / dataArray.length;
+      if (!flameOut && avg > 50) {
+        isBlowing = true;
+        flameIntensity -= 0.03;
+        if (flameIntensity < 0) flameIntensity = 0;
+      } else {
+        isBlowing = false;
+      }
+      requestAnimationFrame(detectBlowing);
+    }
+
+    // Init
+    setupMic();
+    animate();
+  </script>
+  <script>
+
+    const submit_btn = document.getElementById("submit_btn");
+    const img1 = document.getElementById("img01");
+    const img2 = document.getElementById("img02");
+    const demo = document.getElementById("demo")
+    const demo1 = document.getElementById("demo1")
+
+    //demo.innerHTML = `HAAHHAHAHA OLDIE PANTSSS, You're ${age}?"`;
+
+    submit_btn.addEventListener("click", () => {
+      const age = document.getElementById("age").value;
+      demo.textContent = `HAAHHAHAHA OLDIE PANTSSS, You're ${age}?"`;
+
+      img1.classList.add("active");
+      demo.classList.add("visible");
+
+      setTimeout(() => {
+        img2.classList.add("visible");
+        demo1.classList.add("visible");
+      }, 5000);
+    });
+
+
+
+
+
+    /*const img1 = document.getElementsByClassName("image");
+    img1.classList.add("visible");
+ 
+    window.addEventListener('click', () => {
+      setTimeout(() => {
+          document.querySelectorAll('.image').forEach(img => {img.classList.add("visible");
+ 
+          });
+      }, 10000); //10 seconds wait
+    });
+    */
+
+
+
+
+  </script>
+
+  <script>
+    const container = document.querySelector('.horizontal-scroll-container');
+    container.addEventListener('wheel', (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+  </script>
+
+
+
+
+
+
+
+  </section>
+
+  <!--<section id="hide">
+            Or more like this....
+            <img class= "image" id="img02" src="monkey.jpeg" alt="old monkey">
+
+        
+
+
+
+        </section>-->
+
+</body>
+
+
+
+</html>
